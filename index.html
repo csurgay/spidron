@@ -2,7 +2,7 @@
 <html lang="hu">
 <head>
   <meta charset="UTF-8">
-  <title>Semi-Spidron</title>
+  <title>Spidron</title>
   <style>
     body, html { margin:0; padding:0; width:100%; height:100%; display:flex; justify-content:center; align-items:center; }
     canvas { border:1px solid #999; background:#fff; }
@@ -10,46 +10,66 @@
 </head>
 <body>
   <canvas id="spidron" width="1000" height="900"></canvas>
-  <div class=""column">
+  <div class="column">
+  <!--label><h3>&copy; Erdélyi Dániel</h3></label-->
   <fieldset>
-    <legend>Spidron type</legend>
+    <legend>Spidron variant</legend>
     <div>
       <input type="radio" id="r_semi" name="type" value="semi" checked />
-      <label for="semi">Semi</label>
+      <label for="semi">Semi-Spidron</label>
     </div>
     <div>
-      <input type="radio" id="r_tri" name="type" value="tri" />
-      <label for="tri">Tri</label>
+      <input type="radio" id="r_trinest" name="type" value="trinest" />
+      <label for="tri">Trinest</label>
     </div>
     <div>
-      <input type="radio" id="r_spidron" name="type" value="spidron" />
-      <label for="spidron">Spidron</label>
+      <input type="radio" id="r_hexanest" name="type" value="hexanest" />
+      <label for="spidron">Hexanest</label>
+    </div>
+    <div>
+      <input type="radio" id="r_hornflake" name="type" value="hornflake" />
+      <label for="spidron">Hornflake</label>
     </div>
   </fieldset>
   <fieldset>
-    Length <div id="Lvalue">(30)</div>
+    <div style="display:flex;"><div>Size:</div>&nbsp;<div id="Svalue">420</div></div>
+    <input type="range" min="100" max="1000" value="420" class="slider" id="size">
+    <div style="display:flex;"><div>Length:</div>&nbsp;<div id="Lvalue">30</div></div>
     <input type="range" min="1" max="100" value="30" class="slider" id="length">
   </fieldset>
   <fieldset class="slider">
     <legend>Triangle angles</legend>
-    A1 <div id="A1value">(30)</div>
+    <div style="display:flex;"><div>A1:</div>&nbsp;<div id="A1value">30</div></div>
     <input type="range" min="10" max="90" value="30" class="slider" id="A1">
-    <br>A2 <div id="A2value">(30)</div>
+    <div style="display:flex;"><div>A2:</div>&nbsp;<div id="A2value">30</div></div>
     <input type="range" min="10" max="90" value="30" class="slider" id="A2">
-    <br>B1 <div id="B1value">(60)</div>
+    <div style="display:flex;"><div>B1:</div>&nbsp;<div id="B1value">60</div></div>
     <input type="range" min="10" max="90" value="60" class="slider" id="B1">
-    <br>B2 <div id="B2value">(60)</div>
+    <div style="display:flex;"><div>B2:</div>&nbsp;<div id="B2value">60</div></div>
     <input type="range" min="10" max="90" value="60" class="slider" id="B2">
   </fieldset>
+  <fieldset>
+    <legend>Commands</legend>
+    <button id="b_reset" type="button" onclick="resetCommand()">Reset</button>
+  </fieldset>
+  <p> </p>
+  <label>All Spidrons are<br>intellectual property<br>of Dániel ERDÉLYI</label>
   </div>
   <script>
     const c = document.getElementById('spidron');
     const ctx = c.getContext('2d');
-    const deg = Math.PI/180;
     ctx.strokeStyle = '#333';
     ctx.fillStyle = '#aaa';
-    const type = [ [30, 30, 120], [-60, -60, -60] ];
-    const length = 500;  // Initial side length
+    const type = [ [30, 30, 120], [-60, -60, -60] ];  // angles of alternating triangles
+
+    function resetCommand() {
+      document.getElementById("size").value="420";
+      document.getElementById("length").value="30";
+      document.getElementById("A1").value="30";
+      document.getElementById("A2").value="30";
+      document.getElementById("B1").value="60";
+      document.getElementById("B2").value="60";
+    }
 
     function calcHexagon(size) {
       let angle = Math.PI * 7 / 6;  // initial angle
@@ -63,53 +83,62 @@
       return points;
     }
 
-    const hexagon = calcHexagon(420);
+    let hexagon = [];
 
     function animate() {
       ctx.clearRect(0, 0, c.width, c.height);
-      const steps  = document.getElementById("length").value;  // Number of connecting triangles
+      const size  = document.getElementById("size").value;  // Size of initial triangle
+      const length  = document.getElementById("length").value;  // Number of connecting triangles
       type[0][0]=document.getElementById("A1").value;
       type[0][1]=document.getElementById("A2").value;
       type[1][0]=-document.getElementById("B1").value;
       type[1][1]=-document.getElementById("B2").value;
-      document.getElementById("Lvalue").innerHTML="("+steps+")";
-      document.getElementById("A1value").innerHTML="("+type[0][0]+")";
-      document.getElementById("A2value").innerHTML="("+type[0][1]+")";
-      document.getElementById("B1value").innerHTML="("+-type[1][0]+")";
-      document.getElementById("B2value").innerHTML="("+-type[1][1]+")";
+
+      hexagon = calcHexagon(size);
 
       if (document.getElementById("r_semi").checked) {
         for (let i=0; i<1; i++) {
-          semiSpidron(hexagon[i][0],hexagon[i][1],hexagon[i+1][0],hexagon[i+1][1], steps);
+          semiSpidron(hexagon[i][0],hexagon[i][1],hexagon[i+1][0],hexagon[i+1][1], length);
         }
-      } else if (document.getElementById("r_tri").checked) {
+      } else if (document.getElementById("r_trinest").checked) {
         for (let i=0; i<6; i+=2) {
-          semiSpidron(hexagon[i][0],hexagon[i][1],hexagon[i+1][0],hexagon[i+1][1], steps);
+          semiSpidron(hexagon[i][0],hexagon[i][1],hexagon[i+1][0],hexagon[i+1][1], length);
         }
-      } else if (document.getElementById("r_spidron").checked) {
+      } else if (document.getElementById("r_hexanest").checked) {
         for (let i=0; i<6; i++) {
-          semiSpidron(hexagon[i][0],hexagon[i][1],hexagon[i+1][0],hexagon[i+1][1], steps);
+          semiSpidron(hexagon[i][0],hexagon[i][1],hexagon[i+1][0],hexagon[i+1][1], length);
+        }
+      } else if (document.getElementById("r_hornflake").checked) {
+        for (let i=0; i<2; i++) {
+          semiSpidron(hexagon[i][0],hexagon[i][1],hexagon[i+1][0],hexagon[i+1][1], length);
         }
       }
+      document.getElementById("Svalue").innerHTML=size;
+      document.getElementById("Lvalue").innerHTML=length;
+      document.getElementById("A1value").innerHTML=type[0][0];
+      document.getElementById("A2value").innerHTML=type[0][1];
+      document.getElementById("B1value").innerHTML=-type[1][0];
+      document.getElementById("B2value").innerHTML=-type[1][1];
+      
       requestAnimationFrame(animate);
     }
 
-    function semiSpidron(x1,y1,x2,y2, steps) {
+    function semiSpidron(x1,y1,x2,y2, length) {
       const path = [[x1,y1],[x2,y2]];
-      calcPath(path, steps);
+      calcPath(path, length);
       drawPath(path);
     }
 
-    function calcPath(path, steps) {
+    function calcPath(path, length) {
       x1 = path[0][0]; 
       y1 = path[0][1]; 
       x2 = path[1][0]; 
       y2 = path[1][1]; 
       // Main loop of triangles
-      for (let i = 0; i < steps; i++) {
+      for (let i = 0; i < length; i++) {
         const typeIndex   = i % 2; // Alternating triangle types
-        let alp1 = type[typeIndex][0] * deg; // First angle
-        let alp2 = type[typeIndex][1] * deg; // Second angle
+        let alp1 = type[typeIndex][0] * Math.PI / 180; // First angle
+        let alp2 = type[typeIndex][1] * Math.PI / 180; // Second angle
         // third point based of two and two angles
         let u = x2-x1, v = y2-y1;
         let a3 = Math.sqrt(u*u+v*v);
