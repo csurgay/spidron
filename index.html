@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <title>Semi-Spidron</title>
+  <style>
+    body, html { margin:0; padding:0; width:100%; height:100%; display:flex; justify-content:center; align-items:center; }
+    canvas { border:1px solid #999; background:#fff; }
+  </style>
+</head>
+<body>
+  <canvas id="spidron" width="1000" height="900"></canvas>
+  <div class=""column">
+  <fieldset>
+    <legend>Spidron type</legend>
+    <div>
+      <input type="radio" id="r_semi" name="type" value="semi" checked />
+      <label for="semi">Semi</label>
+    </div>
+    <div>
+      <input type="radio" id="r_tri" name="type" value="tri" />
+      <label for="tri">Tri</label>
+    </div>
+    <div>
+      <input type="radio" id="r_spidron" name="type" value="spidron" />
+      <label for="spidron">Spidron</label>
+    </div>
+  </fieldset>
+  <fieldset>
+    Length <div id="Lvalue">(30)</div>
+    <input type="range" min="1" max="100" value="30" class="slider" id="length">
+  </fieldset>
+  <fieldset class="slider">
+    <legend>Triangle angles</legend>
+    A1 <div id="A1value">(30)</div>
+    <input type="range" min="10" max="90" value="30" class="slider" id="A1">
+    <br>A2 <div id="A2value">(30)</div>
+    <input type="range" min="10" max="90" value="30" class="slider" id="A2">
+    <br>B1 <div id="B1value">(60)</div>
+    <input type="range" min="10" max="90" value="60" class="slider" id="B1">
+    <br>B2 <div id="B2value">(60)</div>
+    <input type="range" min="10" max="90" value="60" class="slider" id="B2">
+  </fieldset>
+  </div>
+  <script>
+    const c = document.getElementById('spidron');
+    const ctx = c.getContext('2d');
+    const deg = Math.PI/180;
+    ctx.strokeStyle = '#333';
+    ctx.fillStyle = '#aaa';
+    const type = [ [30, 30, 120], [-60, -60, -60] ];
+    const length = 500;  // Initial side length
+
+    function calcHexagon(size) {
+      let angle = Math.PI * 7 / 6;  // initial angle
+      let rotation = -Math.PI / 3;  // rotation step
+      const points = [];
+      for (let i=0; i<6; i++) {
+        points.push( [500+size*Math.cos(angle), 450+size*Math.sin(angle)] );
+        angle += rotation;
+      }
+      points.push(points[0]);
+      return points;
+    }
+
+    const hexagon = calcHexagon(420);
+
+    function animate() {
+      ctx.clearRect(0, 0, c.width, c.height);
+      const steps  = document.getElementById("length").value;  // Number of connecting triangles
+      type[0][0]=document.getElementById("A1").value;
+      type[0][1]=document.getElementById("A2").value;
+      type[1][0]=-document.getElementById("B1").value;
+      type[1][1]=-document.getElementById("B2").value;
+      document.getElementById("Lvalue").innerHTML="("+steps+")";
+      document.getElementById("A1value").innerHTML="("+type[0][0]+")";
+      document.getElementById("A2value").innerHTML="("+type[0][1]+")";
+      document.getElementById("B1value").innerHTML="("+-type[1][0]+")";
+      document.getElementById("B2value").innerHTML="("+-type[1][1]+")";
+
+      if (document.getElementById("r_semi").checked) {
+        for (let i=0; i<1; i++) {
+          semiSpidron(hexagon[i][0],hexagon[i][1],hexagon[i+1][0],hexagon[i+1][1], steps);
+        }
+      } else if (document.getElementById("r_tri").checked) {
+        for (let i=0; i<6; i+=2) {
+          semiSpidron(hexagon[i][0],hexagon[i][1],hexagon[i+1][0],hexagon[i+1][1], steps);
+        }
+      } else if (document.getElementById("r_spidron").checked) {
+        for (let i=0; i<6; i++) {
+          semiSpidron(hexagon[i][0],hexagon[i][1],hexagon[i+1][0],hexagon[i+1][1], steps);
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+
+    function semiSpidron(x1,y1,x2,y2, steps) {
+      const path = [[x1,y1],[x2,y2]];
+      calcPath(path, steps);
+      drawPath(path);
+    }
+
+    function calcPath(path, steps) {
+      x1 = path[0][0]; 
+      y1 = path[0][1]; 
+      x2 = path[1][0]; 
+      y2 = path[1][1]; 
+      // Main loop of triangles
+      for (let i = 0; i < steps; i++) {
+        const typeIndex   = i % 2; // Alternating triangle types
+        let alp1 = type[typeIndex][0] * deg; // First angle
+        let alp2 = type[typeIndex][1] * deg; // Second angle
+        // third point based of two and two angles
+        let u = x2-x1, v = y2-y1;
+        let a3 = Math.sqrt(u*u+v*v);
+        let alp3=Math.PI-alp1-alp2;
+        let a2 = a3*Math.sin(alp2)/Math.sin(alp3);
+        let RHS1 = x1*u + y1*v + a2*a3*Math.cos(alp1);
+        let RHS2 = y2*u - x2*v - a2*a3*Math.sin(alp1);
+        let x3 = (1/a3/a3) * (u*RHS1 - v*RHS2);
+        let y3 = (1/a3/a3) * (v*RHS1 + u*RHS2);
+
+        path.push([x3,y3]);
+        // Next triangle first side
+        x1 = x2;
+        y1 = y2;
+        x2 = x3;
+        y2 = y3;
+      }
+      return path;
+    }
+      
+    function drawPath(path) {
+      // triangle zigzag
+      ctx.beginPath();
+      ctx.lineWidth   = 0.5;
+      ctx.moveTo(path[0][0],path[0][1]);
+      for (let i=1; i<path.length; i++) { 
+        ctx.lineTo(path[i][0],path[i][1]);
+      }
+      ctx.stroke();
+      // inner curve
+      ctx.beginPath();
+      ctx.lineWidth   = 2;
+      ctx.moveTo(path[0][0],path[0][1]);
+      for (let i=2; i<path.length; i+=2) { 
+        ctx.lineTo(path[i][0],path[i][1]);
+      }
+      ctx.stroke();
+      // outer curve
+      ctx.beginPath();
+      ctx.lineWidth   = 3;
+      ctx.moveTo(path[1][0],path[1][1]);
+      for (let i=3; i<path.length; i+=2) { 
+        ctx.lineTo(path[i][0],path[i][1]);
+      }
+      ctx.stroke();
+    }
+
+    animate();
+
+  </script>
+</body>
+</html>
+
