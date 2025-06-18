@@ -11,23 +11,26 @@
 <body>
   <canvas id="spidron" width="1000" height="900"></canvas>
   <div class="column">
-  <!--label><h3>&copy; Erdélyi Dániel</h3></label-->
   <fieldset>
     <legend>Spidron variant</legend>
     <div>
-      <input type="radio" id="r_semi" name="type" value="semi" checked />
-      <label for="semi">Semi-Spidron</label>
+      <input type="radio" id="r_spidron" name="variant" value="spidron" checked />
+      <label for="spidron">Spidron</label>
     </div>
     <div>
-      <input type="radio" id="r_trinest" name="type" value="trinest" />
-      <label for="tri">Trinest</label>
+      <input type="radio" id="r_semi" name="variant" value="semi" />
+      <label for="spidron">Semi-Spidron</label>
     </div>
     <div>
-      <input type="radio" id="r_hexanest" name="type" value="hexanest" />
+      <input type="radio" id="r_trinest" name="variant" value="trinest" />
+      <label for="spidron">Trinest</label>
+    </div>
+    <div>
+      <input type="radio" id="r_hexanest" name="variant" value="hexanest" />
       <label for="spidron">Hexanest</label>
     </div>
     <div>
-      <input type="radio" id="r_hornflake" name="type" value="hornflake" />
+      <input type="radio" id="r_hornflake" name="variant" value="hornflake" />
       <label for="spidron">Hornflake</label>
     </div>
   </fieldset>
@@ -96,22 +99,23 @@
 
       hexagon = calcHexagon(size);
 
-      if (document.getElementById("r_semi").checked) {
-        for (let i=0; i<1; i++) {
-          semiSpidron(hexagon[i][0],hexagon[i][1],hexagon[i+1][0],hexagon[i+1][1], length);
-        }
+      if (document.getElementById("r_spidron").checked) {
+        semiSpidron(1, 500-size/2,450, 500+size/2,450, length);
+        semiSpidron(1, 500+size/2,450, 500-size/2,450, length);
+      }
+      else if (document.getElementById("r_semi").checked) {
+        semiSpidron(1, 100,450-2*size/3, 100,450+2*size/3, length);
       } else if (document.getElementById("r_trinest").checked) {
         for (let i=0; i<6; i+=2) {
-          semiSpidron(hexagon[i][0],hexagon[i][1],hexagon[i+1][0],hexagon[i+1][1], length);
+          semiSpidron(1, hexagon[i][0],hexagon[i][1],hexagon[i+1][0],hexagon[i+1][1], length);
         }
       } else if (document.getElementById("r_hexanest").checked) {
         for (let i=0; i<6; i++) {
-          semiSpidron(hexagon[i][0],hexagon[i][1],hexagon[i+1][0],hexagon[i+1][1], length);
+          semiSpidron(1, hexagon[i][0],hexagon[i][1],hexagon[i+1][0],hexagon[i+1][1], length);
         }
       } else if (document.getElementById("r_hornflake").checked) {
-        for (let i=0; i<2; i++) {
-          semiSpidron(hexagon[i][0],hexagon[i][1],hexagon[i+1][0],hexagon[i+1][1], length);
-        }
+        semiSpidron(-1, 500,450+size/2, 500,450-size/2, length);
+        semiSpidron(1, 500,450+size/2, 500,450-size/2, length);
       }
       document.getElementById("Svalue").innerHTML=size;
       document.getElementById("Lvalue").innerHTML=length;
@@ -123,13 +127,13 @@
       requestAnimationFrame(animate);
     }
 
-    function semiSpidron(x1,y1,x2,y2, length) {
+    function semiSpidron(dir, x1,y1,x2,y2, length) {
       const path = [[x1,y1],[x2,y2]];
-      calcPath(path, length);
+      calcPath(path, length, dir);
       drawPath(path);
     }
 
-    function calcPath(path, length) {
+    function calcPath(path, length, dir) {
       x1 = path[0][0]; 
       y1 = path[0][1]; 
       x2 = path[1][0]; 
@@ -137,8 +141,8 @@
       // Main loop of triangles
       for (let i = 0; i < length; i++) {
         const typeIndex   = i % 2; // Alternating triangle types
-        let alp1 = type[typeIndex][0] * Math.PI / 180; // First angle
-        let alp2 = type[typeIndex][1] * Math.PI / 180; // Second angle
+        let alp1 = dir * type[typeIndex][0] * Math.PI / 180; // First angle
+        let alp2 = dir * type[typeIndex][1] * Math.PI / 180; // Second angle
         // third point based of two and two angles
         let u = x2-x1, v = y2-y1;
         let a3 = Math.sqrt(u*u+v*v);
