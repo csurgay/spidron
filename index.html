@@ -55,7 +55,11 @@
     <legend>Commands</legend>
     <button id="b_reset" type="button" onclick="resetCommand()">Reset</button>
   </fieldset>
-  <p> </p>
+  <fieldset>
+    <legend>STL Output</legend>
+    <button id="b_stl" type="button" onclick="document.querySelector('textarea').value=stl;">Generate STL</button>
+  </fieldset>
+  <p><textarea></textarea></p>
   <label>All Spidrons are<br>intellectual property<br>of Dániel ERDÉLY</label>
   </div>
   <script>
@@ -64,6 +68,7 @@
     ctx.strokeStyle = '#333';
     ctx.fillStyle = '#aaa';
     const type = [ [30, 30, 120], [-60, -60, -60] ];  // angles of alternating triangles
+    let stl;
 
     function resetCommand() {
       document.getElementById("size").value="420";
@@ -99,6 +104,8 @@
 
       hexagon = calcHexagon(size);
 
+      stl = "";
+
       if (document.getElementById("r_spidron").checked) {
         semiSpidron(1, 500-size/2,450, 500+size/2,450, length);
         semiSpidron(1, 500+size/2,450, 500-size/2,450, length);
@@ -131,6 +138,7 @@
       const path = [[x1,y1],[x2,y2]];
       calcPath(path, length, dir);
       drawPath(path);
+      makeStl(path);
     }
 
     function calcPath(path, length, dir) {
@@ -191,6 +199,24 @@
     }
 
     animate();
+
+    function makeStl(path) {
+      stl += "solid spidron\n";
+      let z = [];
+      for (let i=0; i<path.length; i++) {
+        z.push( i*10 );
+      }
+      for (let i=0; i<path.length-2; i++) {
+        stl += "facet normal\n";
+        stl += "    outer loop\n";
+        stl += "        vertex " + path[i][0] + " " + path[i][1] + " " + z[i] + "\n";
+        stl += "        vertex " + path[i+1][0] + " " + path[i+1][1] + " " + z[i+1] + "\n";
+        stl += "        vertex " + path[i+2][0] + " " + path[i+2][1] + " " + z[i+2] + "\n";
+        stl += "    endloop\n";
+        stl += "endfacet\n";
+      }
+      stl += "endsolid spidron\n";
+    }
 
   </script>
 </body>
