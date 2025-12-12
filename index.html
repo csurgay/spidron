@@ -12,6 +12,15 @@
   <canvas id="spidron" width="1000" height="900"></canvas>
   <div class="column">
   <fieldset>
+    <legend>Presets</legend>
+    <div>
+      <button id="b_preset0" type="button" onclick="presetCommand(['r_semi',420,60,30,30,60,60])">Original</button>
+      <button id="b_preset1" type="button" onclick="presetCommand(['r_semi',275,88,33,17,71,60])">Snail</button>
+      <button id="b_preset2" type="button" onclick="presetCommand(['r_spidron',319,88,33,17,71,60])">DSnail</button>
+      <button id="b_preset3" type="button" onclick="presetCommand(['r_hornflake',319,88,33,17,71,60])">Ramhorn</button>
+    </div>
+  </fieldset>
+  <fieldset>
     <legend>Spidron variant</legend>
     <div>
       <input type="radio" id="r_spidron" name="variant" value="spidron" checked />
@@ -52,10 +61,6 @@
     <input type="range" min="10" max="90" value="60" class="slider" id="B2">
   </fieldset>
   <fieldset>
-    <legend>Commands</legend>
-    <button id="b_reset" type="button" onclick="resetCommand()">Reset</button>
-  </fieldset>
-  <fieldset>
     <legend>STL Output</legend>
     <button id="b_stl" type="button" onclick="document.querySelector('textarea').value=stl;">Generate STL</button>
   </fieldset>
@@ -70,14 +75,15 @@
     const type = [ [30, 30, 120], [-60, -60, -60] ];  // angles of alternating triangles
     let stl;
 
-    function resetCommand() {
-      document.getElementById("size").value="420";
-      document.getElementById("length").value="30";
-      document.getElementById("A1").value="30";
-      document.getElementById("A2").value="30";
-      document.getElementById("B1").value="60";
-      document.getElementById("B2").value="60";
-    }
+    function presetCommand(preset) {
+      document.getElementById(preset[0]).checked = true;
+      document.getElementById("size").value = preset[1];
+      document.getElementById("length").value = preset[2];
+      document.getElementById("A1").value = preset[3];
+      document.getElementById("A2").value = preset[4];
+      document.getElementById("B1").value = preset[5];
+      document.getElementById("B2").value = preset[6];
+    }  
 
     function calcHexagon(size) {
       let angle = Math.PI * 7 / 6;  // initial angle
@@ -204,14 +210,57 @@
       stl += "solid spidron\n";
       let z = [];
       for (let i=0; i<path.length; i++) {
-        z.push( i*10 );
+        z.push( 20 + Math.sqrt(i)*40 );
       }
       for (let i=0; i<path.length-2; i++) {
+        // Base face
+        stl += "facet normal\n";
+        stl += "    outer loop\n";
+        stl += "        vertex " + path[i][0] + " " + path[i][1] + " " + "0" + "\n";
+        stl += "        vertex " + path[i+1][0] + " " + path[i+1][1] + " " + "0" + "\n";
+        stl += "        vertex " + path[i+2][0] + " " + path[i+2][1] + " " + "0" + "\n";
+        stl += "    endloop\n";
+        stl += "endfacet\n";
+        // Elevated top face
         stl += "facet normal\n";
         stl += "    outer loop\n";
         stl += "        vertex " + path[i][0] + " " + path[i][1] + " " + z[i] + "\n";
         stl += "        vertex " + path[i+1][0] + " " + path[i+1][1] + " " + z[i+1] + "\n";
         stl += "        vertex " + path[i+2][0] + " " + path[i+2][1] + " " + z[i+2] + "\n";
+        stl += "    endloop\n";
+        stl += "endfacet\n";
+      }
+      for (let i=0; i<path.length-3; i+=2) {
+        // Right side face 1
+        stl += "facet normal\n";
+        stl += "    outer loop\n";
+        stl += "        vertex " + path[i][0] + " " + path[i][1] + " " + "0" + "\n";
+        stl += "        vertex " + path[i+2][0] + " " + path[i+2][1] + " " + "0" + "\n";
+        stl += "        vertex " + path[i+2][0] + " " + path[i+2][1] + " " + z[i+2] + "\n";
+        stl += "    endloop\n";
+        stl += "endfacet\n";
+        // Right side face 2
+        stl += "facet normal\n";
+        stl += "    outer loop\n";
+        stl += "        vertex " + path[i][0] + " " + path[i][1] + " " + "0" + "\n";
+        stl += "        vertex " + path[i][0] + " " + path[i][1] + " " + z[i] + "\n";
+        stl += "        vertex " + path[i+2][0] + " " + path[i+2][1] + " " + z[i+2] + "\n";
+        stl += "    endloop\n";
+        stl += "endfacet\n";
+        // Left side face 1
+        stl += "facet normal\n";
+        stl += "    outer loop\n";
+        stl += "        vertex " + path[i+1][0] + " " + path[i+1][1] + " " + "0" + "\n";
+        stl += "        vertex " + path[i+3][0] + " " + path[i+3][1] + " " + "0" + "\n";
+        stl += "        vertex " + path[i+3][0] + " " + path[i+3][1] + " " + z[i+3] + "\n";
+        stl += "    endloop\n";
+        stl += "endfacet\n";
+        // Left side face 2
+        stl += "facet normal\n";
+        stl += "    outer loop\n";
+        stl += "        vertex " + path[i+1][0] + " " + path[i+1][1] + " " + "0" + "\n";
+        stl += "        vertex " + path[i+1][0] + " " + path[i+1][1] + " " + z[i+1] + "\n";
+        stl += "        vertex " + path[i+3][0] + " " + path[i+3][1] + " " + z[i+3] + "\n";
         stl += "    endloop\n";
         stl += "endfacet\n";
       }
